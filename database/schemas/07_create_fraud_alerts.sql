@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS monetic.fraud_alerts (
+    alert_key BIGSERIAL PRIMARY KEY,
+    transaction_key BIGINT NOT NULL REFERENCES monetic.fact_transactions(transaction_key),
+    transaction_id VARCHAR(50) NOT NULL,
+    alert_timestamp TIMESTAMP NOT NULL,
+    risk_score INTEGER NOT NULL CHECK (risk_score BETWEEN 0 AND 100),
+    risk_level VARCHAR(20) NOT NULL CHECK (risk_level IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
+    amount_score INTEGER NOT NULL DEFAULT 0,
+    unusual_hour_score INTEGER NOT NULL DEFAULT 0,
+    processing_time_score INTEGER NOT NULL DEFAULT 0,
+    response_code_score INTEGER NOT NULL DEFAULT 0,
+    suspicious_flag_score INTEGER NOT NULL DEFAULT 0,
+    transaction_amount NUMERIC(18,2) NOT NULL DEFAULT 0,
+    response_code VARCHAR(10),
+    channel VARCHAR(30),
+    bank_key INTEGER REFERENCES monetic.dim_bank(bank_key),
+    location_key INTEGER REFERENCES monetic.dim_location(location_key),
+    transaction_type_key INTEGER REFERENCES monetic.dim_transaction_type(transaction_type_key),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
