@@ -2,733 +2,402 @@
 
 ## Plateforme d'exploitation, de supervision et d'analyse des opérations monétiques
 
-> Projet Data Engineering conçu pour simuler, centraliser, superviser et analyser les opérations monétiques d'un environnement bancaire en Côte d'Ivoire.
+Projet Data Engineering conçu pour simuler, centraliser, superviser et
+analyser des opérations monétiques dans un environnement bancaire
+inspiré de la Côte d'Ivoire.
 
----
+> **Données entièrement synthétiques :** ce projet ne contient aucune
+> donnée bancaire réelle.
 
-## 📌 Présentation du projet
+## Présentation
 
-**Monetic Ops & Supervision Platform** est une plateforme de données dédiée à l'exploitation et à la supervision des opérations monétiques.
+**Monetic Ops & Supervision Platform** est une plateforme de données
+dédiée à l'exploitation et à la supervision des opérations monétiques.
+Elle combine un entrepôt PostgreSQL, des pipelines Python/SQL, des
+analyses opérationnelles, des contrôles qualité, un moteur de scoring
+fondé sur des règles et un traitement analytique avec PySpark.
 
-L'objectif est de construire une architecture Data Engineering complète permettant de :
+Objectifs : - Générer des données monétiques synthétiques. - Centraliser
+les données dans PostgreSQL. - Suivre la disponibilité et les
+performances des terminaux ATM et POS. - Analyser les transactions et
+les incidents. - Identifier les transactions présentant des signaux de
+risque. - Calculer des indicateurs opérationnels. - Tester la qualité
+des données. - Produire des agrégations PySpark et enregistrer les KPI
+dans PostgreSQL.
 
-* générer des données monétiques réalistes ;
-* centraliser les données dans un Data Warehouse PostgreSQL ;
-* superviser les terminaux ATM et POS ;
-* analyser les transactions ;
-* détecter les anomalies et transactions suspectes ;
-* suivre les incidents techniques ;
-* produire des indicateurs de performance ;
-* préparer une restitution analytique avec Power BI ;
-* évoluer progressivement vers des traitements distribués avec PySpark et une orchestration avec Airflow.
+## Architecture
 
-Le projet s'appuie sur des données synthétiques inspirées d'un environnement bancaire et monétique ivoirien.
-
----
-
-## 🎯 Objectifs
-
-Les principaux objectifs sont :
-
-1. Concevoir un Data Warehouse adapté aux opérations monétiques.
-2. Générer un volume important de données synthétiques.
-3. Mettre en place des pipelines ETL en Python.
-4. Superviser la disponibilité et les performances des terminaux.
-5. Identifier et analyser les incidents.
-6. Mesurer la performance des transactions.
-7. Détecter les transactions présentant des caractéristiques suspectes.
-8. Construire des indicateurs destinés au pilotage opérationnel.
-9. Préparer une architecture évolutive vers le Big Data et le Machine Learning.
-
----
-
-## 🏗️ Architecture du projet
-
-```text
-                         SOURCES DE DONNÉES
-                                │
-                                ▼
-                    ┌─────────────────────┐
-                    │ Génération Python   │
-                    │ Données synthétiques│
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │       ETL           │
-                    │ Python / SQL        │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-              ┌────────────────────────────────┐
-              │       PostgreSQL Data          │
-              │          Warehouse             │
-              │                                │
-              │ Dimensions + Tables de faits   │
-              └───────────────┬────────────────┘
-                              │
-              ┌───────────────┼────────────────┐
-              ▼               ▼                ▼
-       Supervision       Analytics       Détection
-       terminaux        transactions      anomalies
-              │               │                │
-              └───────────────┼────────────────┘
-                              ▼
-                       ┌──────────────┐
-                       │   Power BI   │
-                       │ Dashboards   │
-                       └──────────────┘
+``` text
+Données synthétiques
+        |
+        v
+Pipelines Python / SQL
+        |
+        v
+PostgreSQL — Data Warehouse
+        |
+        +--> Supervision des terminaux
+        +--> Analyse des transactions
+        +--> Gestion des incidents
+        +--> Détection par règles et risk scoring
+        +--> Contrôles qualité et tests automatisés
+        |
+        v
+PySpark — agrégations par canal
+        |
+        v
+PostgreSQL — table des KPI Spark
+        |
+        v
+Power BI / orchestration Airflow (évolutions prévues)
 ```
 
-### Évolution prévue
+## Modèle de données
 
-```text
-Python / SQL
-     │
-     ▼
-PostgreSQL
-     │
-     ├── ETL
-     ├── Supervision
-     ├── Analytics
-     └── Détection fraude
-     │
-     ▼
-PySpark
-     │
-     ▼
-Airflow
-     │
-     ▼
-Power BI / Monitoring
-```
-
----
-
-## 🗄️ Modèle de données
-
-Le Data Warehouse utilise un schéma dédié :
-
-```text
-monetic
-```
+Le Data Warehouse utilise le schéma PostgreSQL `monetic`.
 
 ### Dimensions
 
-* `dim_date`
-* `dim_bank`
-* `dim_customer`
-* `dim_card`
-* `dim_terminal`
-* `dim_merchant`
-* `dim_location`
-* `dim_transaction_type`
-* `dim_response_code`
+-   `dim_date`
+-   `dim_bank`
+-   `dim_customer`
+-   `dim_card`
+-   `dim_terminal`
+-   `dim_merchant`
+-   `dim_location`
+-   `dim_transaction_type`
+-   `dim_response_code`
 
 ### Tables de faits
 
-* `fact_transactions`
-* `fact_terminal_status`
-* `fact_incidents`
+-   `fact_transactions`
+-   `fact_terminal_status`
+-   `fact_incidents`
 
----
+Le projet comprend également des tables analytiques pour les alertes de
+risque et les KPI calculés par PySpark.
 
-## 📊 Données générées
+## Données synthétiques
 
-Le projet contient actuellement :
+  Élément                          Volume
+  ----------------------------- ---------
+  Clients                             500
+  Cartes                              500
+  Terminaux                           200
+  Terminaux ATM                       120
+  Terminaux POS                        80
+  Commerçants                         300
+  Banques                               5
+  Types de transactions                 6
+  Codes réponse                         9
+  Transactions                    100 000
+  Observations de supervision     584 000
+  Incidents générés                12 638
+  Villes                                6
 
-| Élément                     |  Volume |
-| --------------------------- | ------: |
-| Clients                     |     500 |
-| Cartes                      |     500 |
-| Terminaux                   |     200 |
-| Terminaux ATM               |     120 |
-| Terminaux POS               |      80 |
-| Commerçants                 |     300 |
-| Banques                     |       5 |
-| Types de transactions       |       6 |
-| Codes réponse               |       9 |
-| Transactions                | 100 000 |
-| Observations de supervision | 584 000 |
-| Incidents                   |  12 638 |
-| Villes                      |       6 |
+Les données sont synthétiques et ne décrivent pas l'activité réelle
+d'une banque ou d'un établissement financier.
 
-Les données sont synthétiques et ne contiennent aucune donnée bancaire réelle.
+## ETL et génération des données
 
----
+Les scripts Python génèrent les dimensions, les transactions, les
+observations de supervision et les incidents, puis chargent les données
+dans PostgreSQL.
 
-# ⚙️ ETL & Génération des données
+Les transactions contiennent notamment la date et l'heure, la banque, le
+client, la carte, le terminal, le commerçant, la localisation, le type
+de transaction, le code réponse, le montant, la devise, le temps de
+traitement et des indicateurs de succès et de suspicion.
 
-Les données sont générées automatiquement avec Python et chargées dans PostgreSQL.
+Canaux simulés : - ATM - POS - BANKING - E_COMMERCE
 
-### Génération des dimensions
+## Supervision des terminaux
 
-Le pipeline génère notamment :
+Les statuts simulés sont `ONLINE`, `DEGRADED`, `OFFLINE` et
+`MAINTENANCE`.
 
-* les clients ;
-* les cartes ;
-* les terminaux ;
-* les commerçants ;
-* les données de référence.
+Le volume de supervision est calculé ainsi :
 
-### Génération des transactions
+`200 terminaux × 365 jours × 8 observations par jour = 584 000 observations`
 
-Le pipeline génère **100 000 transactions** avec notamment :
+Indicateurs disponibles : - Disponibilité moyenne et temps de réponse. -
+Statut des terminaux. - Incidents et niveaux de criticité. - Comparaison
+ATM / POS. - Performance par ville. - Terminaux les plus problématiques.
 
-* date et heure ;
-* banque ;
-* client ;
-* carte ;
-* terminal ;
-* commerçant ;
-* localisation ;
-* type de transaction ;
-* code réponse ;
-* montant ;
-* devise ;
-* temps de traitement ;
-* statut de succès ;
-* indicateur de transaction suspecte.
+### Résultats de supervision
 
-### Caractéristiques
+  -----------------------------------------------------------------------
+  Indicateur                                                     Résultat
+  ------------------------------ ----------------------------------------
+  Observations                                                    584 000
 
-Les transactions couvrent plusieurs canaux :
+  Disponibilité moyenne                                           94,04 %
 
-* ATM ;
-* POS ;
-* Banking ;
-* E-commerce.
+  Incidents                                                        12 638
 
----
+  Incidents résolus                                               91,91 %
 
-# 🏧 Supervision des terminaux
+  Temps moyen de résolution          208,97 minutes (environ 3,48 heures)
+  (MTTR)                         
+  -----------------------------------------------------------------------
 
-Une table de supervision permet de suivre l'état des terminaux dans le temps.
+## Gestion des incidents
 
-Les statuts simulés sont :
+Les incidents sont générés à partir des anomalies simulées dans les
+données de supervision.
 
-```text
-ONLINE
-DEGRADED
-OFFLINE
-MAINTENANCE
-```
+Niveaux de criticité : `MEDIUM`, `HIGH`, `CRITICAL`.
 
-Le pipeline produit :
+Types : `PERFORMANCE`, `CONNECTIVITY`, `SYSTEM_FAILURE`.
 
-**200 terminaux × 365 jours × 8 observations par jour**
+Statuts : `OPEN`, `IN_PROGRESS`, `RESOLVED`.
 
-soit :
+Les analyses couvrent le volume d'incidents, la criticité, les types,
+les terminaux, les villes, le temps moyen de résolution et l'évolution
+mensuelle.
 
-```text
-584 000 observations
-```
+## Analyse des transactions
 
-### Indicateurs disponibles
+Les analyses SQL et PySpark portent sur 100 000 transactions.
 
-* disponibilité moyenne ;
-* temps de réponse ;
-* statut des terminaux ;
-* incidents ;
-* incidents critiques ;
-* comparaison ATM / POS ;
-* performance par ville ;
-* terminaux les plus problématiques.
+  Indicateur                                                  Résultat
+  -------------------------------------------- -----------------------
+  Nombre de transactions                                       100 000
+  Montant total                                  13 577 318 105,13 XOF
+  Montant moyen                                         135 773,18 XOF
+  Transactions réussies                                         87 977
+  Taux de réussite                                             87,98 %
+  Transactions rejetées                                         12 023
+  Transactions marquées suspectes                                4 515
+  Taux de transactions suspectes                                4,52 %
+  Montant associé aux transactions suspectes      3 016 017 010,93 XOF
+
+Les analyses incluent la performance par banque, ville, type de
+transaction, code réponse, canal, mois et heure.
 
-### Résultats actuels
+## Détection des anomalies et risk scoring
 
-| Indicateur            |   Résultat |
-| --------------------- | ---------: |
-| Observations          |    584 000 |
-| Disponibilité moyenne |    94,04 % |
-| Incidents             |     12 638 |
-| Incidents résolus     |    91,91 % |
-| MTTR                  | 208,97 min |
-| MTTR                  |     3,48 h |
+Le module `fraud_detection` utilise une approche fondée sur des règles.
+Il attribue des points selon différents signaux : - Montant élevé. -
+Horaire inhabituel. - Temps de traitement élevé. - Code réponse
+considéré comme risqué. - Indicateur de transaction suspecte.
 
----
+Le score est plafonné à 100 et réparti en niveaux `LOW`, `MEDIUM`,
+`HIGH` et `CRITICAL`.
 
-# 🚨 Gestion des incidents
+### Résultats du scoring
 
-Les incidents sont générés à partir des anomalies détectées dans la supervision des terminaux.
+  Niveau de risque         Alertes        Part
+  ------------------ ------------- -----------
+  LOW                       93 250     93,25 %
+  MEDIUM                     3 502      3,50 %
+  HIGH                       2 744      2,74 %
+  CRITICAL                     504      0,50 %
+  **Total**            **100 000**   **100 %**
 
-Les niveaux de criticité sont :
+Les niveaux `HIGH` et `CRITICAL` représentent 3 248 alertes, soit 3,24 %
+des transactions simulées. Le montant associé est de 2 147 770 408,42
+XOF.
 
-```text
-MEDIUM
-HIGH
-CRITICAL
-```
+> Ces résultats proviennent de règles appliquées à des données
+> synthétiques. Ils ne constituent ni une preuve de fraude réelle ni un
+> modèle de Machine Learning entraîné.
 
-Les types d'incidents comprennent :
+## PySpark : analyse des transactions
 
-```text
-PERFORMANCE
-CONNECTIVITY
-SYSTEM_FAILURE
-```
+Le job `spark_jobs/transaction_analysis.py` lit les transactions depuis
+PostgreSQL avec JDBC, calcule les KPI globaux et les agrégations par
+canal, puis enregistre les KPI de canal dans PostgreSQL.
 
-Les statuts sont :
+### KPI globaux calculés par PySpark
 
-```text
-OPEN
-IN_PROGRESS
-RESOLVED
-```
+  Indicateur                                      Résultat
+  -------------------------------- -----------------------
+  Transactions analysées                           100 000
+  Montant total                      13 577 318 105,13 XOF
+  Montant moyen                             135 773,18 XOF
+  Taux de réussite                                87,977 %
+  Taux de transactions suspectes                   4,515 %
 
-### KPIs incidents
+### Agrégations par canal
 
-Les analyses permettent notamment de mesurer :
+  Canal          Transactions   Montant total (XOF)   Taux de réussite
+  ------------ -------------- --------------------- ------------------
+  ATM                  51 912      3 985 555 679,05            88,06 %
+  POS                  35 217      4 414 949 004,15            88,01 %
+  BANKING               7 829      3 913 614 161,76            87,41 %
+  E_COMMERCE            5 042      1 263 199 260,17            87,80 %
 
-* nombre total d'incidents ;
-* incidents critiques ;
-* incidents par niveau de sévérité ;
-* incidents par type ;
-* incidents par terminal ;
-* incidents par ville ;
-* temps moyen de résolution ;
-* évolution mensuelle.
+Le job utilise le pilote PostgreSQL JDBC présent dans
+`spark_jobs/jars/`. Les KPI par canal sont enregistrés dans
+`monetic.spark_channel_kpis`.
 
----
+## Contrôles qualité et tests automatisés
 
-# 💳 Analyse des transactions
+Les contrôles SQL vérifient notamment : - Le nombre de transactions. -
+L'absence de transactions sans localisation. - Les montants négatifs. -
+Les scores et niveaux de risque valides. - Les alertes orphelines. - Les
+identifiants de transaction dupliqués. - La cohérence entre statut de
+succès et code réponse. - La cohérence des montants entre transactions
+et alertes.
 
-Le projet comporte actuellement un module SQL d'analyse des performances transactionnelles.
+Les contrôles SQL exécutés ne remontaient aucune anomalie. La suite de
+tests automatisés a également réussi : **14 tests passés**.
 
-### Volume global
+## Technologies
 
-```text
-100 000 transactions
-```
+### Data Engineering et analyse
 
-### Montant total
+-   Python
+-   SQL
+-   PostgreSQL
+-   PySpark / Apache Spark
+-   Pandas
+-   NumPy
+-   Faker
+-   Psycopg2
+-   JDBC PostgreSQL
 
-```text
-13 577 318 105,13 XOF
-```
+### Environnement et qualité
 
-### Montant moyen
+-   Docker
+-   Docker Compose
+-   pytest
+-   Git
+-   GitHub
 
-```text
-135 773,18 XOF
-```
+### Évolutions envisagées
 
-### Taux de succès
+-   Apache Airflow pour l'orchestration.
+-   Power BI pour les tableaux de bord.
+-   Monitoring complémentaire des pipelines.
+-   Évaluation approfondie des règles de risque.
+-   Étude future du Machine Learning sur des données adaptées.
 
-```text
-87,98 %
-```
+## Structure du projet
 
-### Transactions suspectes
-
-```text
-4 515
-```
-
-soit :
-
-```text
-4,52 %
-```
-
-Le montant associé aux transactions suspectes représente :
-
-```text
-3 016 017 010,93 XOF
-```
-
----
-
-## 📈 Analyses disponibles
-
-Le module transactionnel permet notamment d'analyser :
-
-* performance globale ;
-* transactions réussies / rejetées ;
-* transactions suspectes ;
-* performance par type de transaction ;
-* performance par banque ;
-* codes de réponse ;
-* performance par ville ;
-* évolution mensuelle ;
-* activité horaire ;
-* transactions suspectes à montant élevé.
-
-### Types de transactions
-
-```text
-ATM_WD
-POS_PAY
-TRANSFER
-BAL_INQ
-CASH_DEP
-ONLINE_PAY
-```
-
-### Codes de réponse
-
-Le modèle comprend notamment :
-
-```text
-00 - SUCCESS
-05 - DECLINED
-14 - CARD_ERROR
-51 - INSUFFICIENT_FUNDS
-54 - CARD_ERROR
-55 - AUTHENTICATION_ERROR
-57 - AUTHORIZATION_ERROR
-91 - SYSTEM_ERROR
-96 - SYSTEM_ERROR
-```
-
----
-
-# 🔎 Détection des anomalies
-
-Une première logique de détection basée sur des règles est déjà intégrée au processus de génération des transactions.
-
-L'indicateur :
-
-```text
-is_suspicious
-```
-
-permet d'identifier des transactions présentant certains signaux de risque, notamment :
-
-* montant élevé ;
-* horaire inhabituel ;
-* temps de traitement élevé ;
-* certains codes de réponse ;
-* combinaison de plusieurs signaux.
-
-> Cette première version constitue une détection basée sur des règles et non un modèle de Machine Learning.
-
-### Prochaine évolution
-
-Le module sera progressivement enrichi avec :
-
-```text
-Rule-based detection
-        │
-        ▼
-Risk scoring
-        │
-        ▼
-Anomaly detection
-        │
-        ▼
-Machine Learning
-```
-
----
-
-# 🧪 Contrôles qualité
-
-Plusieurs contrôles sont effectués sur les données.
-
-### Transactions
-
-```text
-Total transactions       : 100 000
-Transactions sans lieu   : 0
-```
-
-### Localisations
-
-```text
-Villes distinctes : 6
-```
-
-Les localisations ont également fait l'objet d'un contrôle d'encodage afin d'éliminer les valeurs corrompues.
-
-### Intégrité
-
-Les relations entre :
-
-* transactions ;
-* terminaux ;
-* banques ;
-* cartes ;
-* clients ;
-* commerçants ;
-* localisations ;
-* codes réponse ;
-
-sont assurées par les clés étrangères du Data Warehouse.
-
----
-
-# 🛠️ Technologies utilisées
-
-## Data Engineering
-
-* Python
-* SQL
-* PostgreSQL
-* Pandas
-* NumPy
-* Faker
-* Psycopg2
-
-## Infrastructure
-
-* Docker
-* Docker Compose
-
-## Big Data — prévu
-
-* Apache Spark
-* PySpark
-
-## Orchestration — prévu
-
-* Apache Airflow
-
-## Data Visualization — prévu
-
-* Microsoft Power BI
-
-## Versioning
-
-* Git
-* GitHub
-
----
-
-# 📁 Structure du projet
-
-```text
+``` text
 monetic-ops-supervision-platform/
-│
-├── data/
-│   ├── raw/
-│   ├── processed/
-│   └── sample/
-│
 ├── database/
 │   ├── schemas/
-│   │   ├── 01_create_schema.sql
-│   │   ├── 02_create_dimensions.sql
-│   │   ├── 03_create_facts.sql
-│   │   ├── 04_seed_reference_data.sql
-│   │   ├── 05_seed_dim_date.sql
-│   │   └── 06_seed_additional_locations.sql
-│   │
-│   ├── tables/
-│   │
 │   └── queries/
-│       ├── 01_incident_kpis.sql
-│       ├── 02_terminal_performance.sql
-│       └── 03_transaction_performance.sql
-│
 ├── etl/
-│   ├── extract/
-│   ├── transform/
-│   ├── load/
 │   ├── generate_data.py
 │   ├── generate_transactions.py
 │   ├── generate_terminal_status.py
 │   └── generate_incidents.py
-│
-├── monitoring/
-│   ├── terminal_monitoring/
-│   ├── transaction_monitoring/
-│   └── incident_detection/
-│
 ├── fraud_detection/
-│
-├── airflow/
-│   └── dags/
-│
-├── pyspark/
-│
-├── powerbi/
-│
+│   ├── fraud_rules.py
+│   ├── risk_scoring.py
+│   └── generate_alerts.py
+├── spark_jobs/
+│   ├── jars/
+│   │   └── postgresql-42.7.8.jar
+│   └── transaction_analysis.py
 ├── tests/
-│
-├── docker/
-│
-├── docs/
-│
-├── requirements.txt
+│   ├── test_database_quality.py
+│   └── test_fraud_scoring.py
 ├── docker-compose.yml
+├── requirements.txt
 └── README.md
 ```
 
----
+Cette arborescence présente les principaux composants ; les fichiers
+locaux peuvent varier selon les étapes de développement.
 
-# 🚀 Installation
+## Installation et exécution
 
-## 1. Cloner le projet
+### 1. Cloner le dépôt
 
-```bash
+``` powershell
 git clone https://github.com/GGFabrice/monetic-ops-supervision-platform.git
 cd monetic-ops-supervision-platform
 ```
 
-## 2. Créer l'environnement Python
+### 2. Créer et activer l'environnement Python
 
-```bash
+``` powershell
 python -m venv .venv
-```
-
-### Windows PowerShell
-
-```powershell
 .\.venv\Scripts\Activate.ps1
 ```
 
-## 3. Installer les dépendances
+### 3. Installer les dépendances
 
-```powershell
+``` powershell
 pip install -r requirements.txt
 ```
 
-## 4. Démarrer PostgreSQL
+### 4. Démarrer PostgreSQL avec Docker Compose
 
-Le projet utilise Docker pour exécuter PostgreSQL.
-
-```powershell
+``` powershell
 docker compose up -d
 ```
 
-## 5. Initialiser la base de données
+Vérifier les paramètres de connexion et les scripts SQL du dépôt avant
+d'initialiser une nouvelle base. Exécuter les scripts de création et de
+génération dans l'ordre prévu par le projet.
 
-Les scripts SQL du dossier :
+### 5. Exécuter l'analyse PySpark
 
-```text
-database/schemas/
+Après avoir démarré PostgreSQL, activé l'environnement virtuel et
+vérifié les paramètres de connexion :
+
+``` powershell
+python .\spark_jobs\transaction_analysis.py
 ```
 
-permettent de créer le schéma, les dimensions, les tables de faits et les données de référence.
+Le job affiche les KPI globaux et par canal, puis enregistre les KPI de
+canal dans PostgreSQL.
 
----
+### 6. Exécuter les tests automatisés
 
-# 🔄 Pipeline actuel
-
-Le pipeline actuellement construit suit cette logique :
-
-```text
-Création du Data Warehouse
-          │
-          ▼
-Création des dimensions
-          │
-          ▼
-Génération des données de référence
-          │
-          ▼
-Génération des transactions
-          │
-          ▼
-Supervision des terminaux
-          │
-          ▼
-Génération des incidents
-          │
-          ▼
-Analyses SQL
-          │
-          ▼
-Contrôle qualité
+``` powershell
+pytest
 ```
 
----
+## Roadmap
 
-# 🗺️ Roadmap
+### Réalisé
 
-## ✅ Phase 1 — Data Warehouse
+-   [x] Entrepôt PostgreSQL et schéma `monetic`.
+-   [x] Dimensions et tables de faits.
+-   [x] Génération des données de référence et des transactions.
+-   [x] Supervision des terminaux.
+-   [x] Génération et analyse des incidents.
+-   [x] Analyses SQL des transactions et des terminaux.
+-   [x] Règles de détection et risk scoring.
+-   [x] Génération des alertes.
+-   [x] Contrôles qualité SQL.
+-   [x] Tests automatisés.
+-   [x] Analyse des transactions avec PySpark.
+-   [x] Persistance des KPI PySpark dans PostgreSQL.
 
-* [x] PostgreSQL
-* [x] Docker
-* [x] Schéma `monetic`
-* [x] Dimensions
-* [x] Tables de faits
-* [x] Données de référence
+### À développer
 
-## ✅ Phase 2 — Génération des données
+-   [ ] Orchestration des pipelines avec Airflow.
+-   [ ] Tableaux de bord Power BI finalisés.
+-   [ ] Supervision centralisée de l'exécution des pipelines.
+-   [ ] Évaluation approfondie des règles de scoring.
+-   [ ] Étude d'une approche Machine Learning sur des données adaptées.
 
-* [x] Clients
-* [x] Cartes
-* [x] Terminaux
-* [x] Commerçants
-* [x] Transactions
-* [x] Données de supervision
+## Statut du projet
 
-## ✅ Phase 3 — Supervision
+Le projet dispose d'un entrepôt PostgreSQL, de pipelines de génération
+de données, de modules de supervision et d'analyse, d'une détection
+fondée sur des règles, de contrôles qualité, de tests automatisés et
+d'un job PySpark qui persiste ses KPI dans PostgreSQL.
 
-* [x] Statuts des terminaux
-* [x] Disponibilité
-* [x] Temps de réponse
-* [x] Incidents
-* [x] KPIs incidents
-* [x] KPIs terminaux
+Les données sont synthétiques et les scores de risque sont déterminés
+par des règles explicites. Airflow et les tableaux de bord Power BI
+restent des évolutions à réaliser.
 
-## ✅ Phase 4 — Analytics
-
-* [x] KPIs transactions
-* [x] Analyse par banque
-* [x] Analyse par ville
-* [x] Analyse par type
-* [x] Analyse des codes réponse
-* [x] Analyse horaire
-* [x] Analyse mensuelle
-* [x] Contrôles qualité
-
-## 🔄 Phase 5 — Fraud Detection
-
-* [ ] Architecture du module fraude
-* [ ] Règles de détection avancées
-* [ ] Risk scoring
-* [ ] Classification des niveaux de risque
-* [ ] Analyse des comportements suspects
-* [ ] Machine Learning
-
-## 🔄 Phase 6 — Big Data
-
-* [ ] PySpark
-* [ ] Traitement distribué
-* [ ] Optimisation des traitements
-* [ ] Pipeline Spark
-
-## 🔄 Phase 7 — Orchestration
-
-* [ ] Airflow
-* [ ] DAG ETL
-* [ ] Planification automatique
-* [ ] Monitoring des pipelines
-
-## 🔄 Phase 8 — Business Intelligence
-
-* [ ] Modèle Power BI
-* [ ] Dashboard exécutif
-* [ ] Dashboard transactions
-* [ ] Dashboard supervision
-* [ ] Dashboard fraude
-* [ ] KPIs opérationnels
-
----
-
-# 📌 Statut actuel du projet
-
-**Projet en développement actif.**
-
-Le Data Warehouse, les pipelines de génération de données, la supervision des terminaux, la génération des incidents et les premières analyses SQL sont opérationnels.
-
-La prochaine étape majeure est la construction du module **Fraud Detection & Risk Scoring**.
-
----
-
-## 👨‍💻 Auteur
+## Auteur
 
 **Gnabo Fabrice**
 
-Data Engineering | Data Analytics | Python | SQL | PostgreSQL | Power BI
+Data Engineering \| Data Analytics \| Python \| SQL \| PostgreSQL \|
+PySpark
 
-GitHub :
-
-https://github.com/GGFabrice
-
-Projet :
-
-https://github.com/GGFabrice/monetic-ops-supervision-platform
+-   GitHub : https://github.com/GGFabrice
+-   Dépôt du projet :
+    https://github.com/GGFabrice/monetic-ops-supervision-platform
