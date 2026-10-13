@@ -1,5 +1,6 @@
 
 import os
+import psycopg2
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import avg, count, sum, when
 
@@ -70,6 +71,59 @@ def analyze_transactions(df):
     )
 
 
+def save_channel_kpis(df):
+    channel_kpis = (
+        df.groupBy("channel")
+        .agg(
+            count("*").alias("total_transactions"),
+            sum("amount").alias("total_amount"),
+            avg("amount").alias("average_amount"),
+            (
+                avg(when(df.is_success, 1).otherwise(0)) * 100
+            ).alias("success_rate_pct"),
+        )
+    )
+
+    rows = channel_kpis.collect()
+
+    with psycopg2.connect(
+        host="localhost",
+        port=5433,
+        dbname="monetic_dw",
+        user="monetic_user",
+        password="monetic_password",
+    ) as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "DELETE FROM monetic.spark_channel_kpis"
+            )
+
+            for row in rows:
+                cursor.execute(
+                    """
+                    INSERT INTO monetic.spark_channel_kpis (
+                        channel,
+                        total_transactions,
+                        total_amount,
+                        average_amount,
+                        success_rate_pct,
+                        analyzed_at
+                    )
+                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                    """,
+                    (
+                        row["channel"],
+                        row["total_transactions"],
+                        row["total_amount"],
+                        row["average_amount"],
+                        row["success_rate_pct"],
+                    ),
+                )
+
+    print("\n=== KPI ENREGISTRÉS DANS POSTGRESQL ===")
+    channel_kpis.orderBy("channel").show(truncate=False)
+
+
 def main():
     spark = create_spark_session()
     spark.sparkContext.setLogLevel("WARN")
@@ -77,6 +131,7 @@ def main():
     try:
         transactions = load_transactions(spark)
         analyze_transactions(transactions)
+        save_channel_kpis(transactions)
     finally:
         spark.stop()
 
